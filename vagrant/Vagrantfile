@@ -3,7 +3,7 @@
 
 Vagrant.configure("2") do |config|
   config.vm.box = "ubuntu/trusty64"
-  config.vm.hostname = "osmuser-server"
+  config.vm.hostname = "osmserver"
 
   config.vm.network "forwarded_port", guest: 80, host: 8080
   config.vm.network "private_network", ip: "192.168.33.10"
@@ -13,7 +13,7 @@ Vagrant.configure("2") do |config|
   config.vm.provider "virtualbox" do |m|
     m.gui = false
     m.name = "osmuser-server"
-    m.cpus = 2
+    m.cpus = 4
     m.memory = 4096
   end
 
