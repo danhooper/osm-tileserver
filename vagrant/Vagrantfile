@@ -3,7 +3,7 @@
 
 Vagrant.configure("2") do |config|
   config.vm.box = "ubuntu/trusty64"
-  config.vm.hostname = "zskarte-server"
+  config.vm.hostname = "osmuser-server"
 
   config.vm.network "forwarded_port", guest: 80, host: 8080
   config.vm.network "private_network", ip: "192.168.33.10"
@@ -12,24 +12,22 @@ Vagrant.configure("2") do |config|
 
   config.vm.provider "virtualbox" do |m|
     m.gui = false
-    m.name = "zskarte-server"
+    m.name = "osmuser-server"
     m.cpus = 2
     m.memory = 4096
   end
 
   config.vm.provision "shell", inline: <<-SHELL
-    # Update repository, set timezone
     apt-get update
-    timedatectl set-timezone Europe/Zurich
 
     # Base packages
     apt-get install -y make cmake g++ libboost-all-dev libexpat1-dev zlib1g-dev subversion git-core tar unzip wget bzip2 build-essential autoconf libtool libxml2-dev libgeos-dev libgeos++-dev libpq-dev libbz2-dev libproj-dev munin-node munin libprotobuf-c0-dev protobuf-c-compiler libfreetype6-dev libpng12-dev libtiff4-dev libicu-dev libgdal1-dev libcairo-dev libcairomm-1.0-dev apache2 apache2-dev libagg-dev liblua5.2-dev ttf-unifont lua5.2 liblua5.2-dev libgeotiff-epsg node-carto postgresql postgresql-contrib postgis postgresql-9.3-postgis-2.1 osmosis
 
     # Setting up PostgreSQL
-    sudo -u postgres createuser -S zskarte
-    sudo -u postgres createdb -E UTF8 -O zskarte gis
-    useradd -m zskarte
-    sudo -u postgres psql --command="CREATE EXTENSION postgis;ALTER TABLE geometry_columns OWNER TO zskarte;ALTER TABLE spatial_ref_sys OWNER TO zskarte;" --dbname=gis
+    sudo -u postgres createuser -S osmuser
+    sudo -u postgres createdb -E UTF8 -O osmuser gis
+    useradd -m osmuser
+    sudo -u postgres psql --command="CREATE EXTENSION postgis;ALTER TABLE geometry_columns OWNER TO osmuser;ALTER TABLE spatial_ref_sys OWNER TO osmuser;" --dbname=gis
 
     # Installing osm2pgsql
     mkdir ~/src
@@ -62,7 +60,7 @@ Vagrant.configure("2") do |config|
 
     # Installing osm-bright stylesheet
     mkdir -p /usr/local/share/maps/style
-    chown zskarte /usr/local/share/maps/style
+    chown osmuser /usr/local/share/maps/style
     cd /usr/local/share/maps/style
     wget -q https://github.com/mapbox/osm-bright/archive/master.zip
     wget -q http://data.openstreetmapdata.com/simplified-land-polygons-complete-3857.zip
@@ -99,7 +97,7 @@ Vagrant.configure("2") do |config|
     chmod u+x /etc/init.d/renderd
     ln -s /etc/init.d/renderd /etc/rc2.d/S20renderd
     mkdir /var/lib/mod_tile
-    chown zskarte /var/lib/mod_tile
+    chown osmuser /var/lib/mod_tile
 
     # System tuning
     cp /data_share/config/postgres/postgresql.conf /etc/postgresql/9.3/main/
@@ -107,28 +105,28 @@ Vagrant.configure("2") do |config|
 
     # Import latest OSM-data for California
     mkdir /usr/local/share/maps/California
-    chown zskarte /usr/local/share/maps/California
+    chown osmuser /usr/local/share/maps/California
     cd /usr/local/share/maps/California
     wget -q http://download.geofabrik.de/north-america/us/california-latest.osm.pbf
-    sudo -u zskarte osm2pgsql --slim -d gis -C 2048 --number-processes 3 /usr/local/share/maps/California/california-latest.osm.pbf
+    sudo -u osmuser osm2pgsql --slim -d gis -C 2048 --number-processes 3 /usr/local/share/maps/California/california-latest.osm.pbf
 
     # Setup auto-updating for OSM-data
-    /root/src/osm2pgsql/install-postgis-osm-user.sh gis zskarte
+    /root/src/osm2pgsql/install-postgis-osm-user.sh gis osmuser
     cp /root/src/mod_tile/openstreetmap-tiles-update-expire /usr/bin/
     cp /root/src/mod_tile/osmosis-db_replag /usr/bin/
-    mkdir /var/log/tiles && chown zskarte /var/log/tiles
-    DATE=`date +%Y-%m-%d` &&  sudo -u zskarte openstreetmap-tiles-update-expire $DATE
+    mkdir /var/log/tiles && chown osmuser /var/log/tiles
+    DATE=`date +%Y-%m-%d` &&  sudo -u osmuser openstreetmap-tiles-update-expire $DATE
     cp /data_share/config/osmosis/configuration.txt /var/lib/mod_tile/.osmosis/
-    sudo -u zskarte openstreetmap-tiles-update-expire
+    sudo -u osmuser openstreetmap-tiles-update-expire
     cp /data_share/config/osmosis/rc.local /etc/rc.local
 
     # Starting services
     mkdir /var/run/renderd
-    chown zskarte /var/run/renderd
+    chown osmuser /var/run/renderd
     /etc/init.d/renderd start
     service apache2 restart
 
-    # Setup default map interface (TODO: replace with zskarte)
+    # Setup default map interface (TODO: replace with osmuser)
     rm /var/www/html/index.html
     cp /data_share/web/index.html /var/www/html/
   SHELL
