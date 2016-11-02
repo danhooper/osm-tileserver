@@ -105,12 +105,12 @@ Vagrant.configure("2") do |config|
     cp /data_share/config/postgres/postgresql.conf /etc/postgresql/9.3/main/
     cp /data_share/config/sysctl.conf /etc/
 
-    # Import latest OSM-data for Switzerland
-    mkdir /usr/local/share/maps/switzerland
-    chown zskarte /usr/local/share/maps/switzerland
-    cd /usr/local/share/maps/switzerland
-    wget -q http://planet.osm.ch/switzerland-exact.osm.pbf
-    sudo -u zskarte osm2pgsql --slim -d gis -C 2048 --number-processes 3 /usr/local/share/maps/switzerland/switzerland-exact.osm.pbf
+    # Import latest OSM-data for California
+    mkdir /usr/local/share/maps/California
+    chown zskarte /usr/local/share/maps/California
+    cd /usr/local/share/maps/California
+    wget -q http://download.geofabrik.de/north-america/us/california-latest.osm.pbf
+    sudo -u zskarte osm2pgsql --slim -d gis -C 2048 --number-processes 3 /usr/local/share/maps/California/California-exact.osm.pbf
 
     # Setup auto-updating for OSM-data
     /root/src/osm2pgsql/install-postgis-osm-user.sh gis zskarte
