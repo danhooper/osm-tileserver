@@ -110,7 +110,7 @@ Vagrant.configure("2") do |config|
     chown zskarte /usr/local/share/maps/California
     cd /usr/local/share/maps/California
     wget -q http://download.geofabrik.de/north-america/us/california-latest.osm.pbf
-    sudo -u zskarte osm2pgsql --slim -d gis -C 2048 --number-processes 3 /usr/local/share/maps/California/California-exact.osm.pbf
+    sudo -u zskarte osm2pgsql --slim -d gis -C 2048 --number-processes 3 /usr/local/share/maps/California/california-latest.osm.pbf
 
     # Setup auto-updating for OSM-data
     /root/src/osm2pgsql/install-postgis-osm-user.sh gis zskarte
