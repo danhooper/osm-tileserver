@@ -63,7 +63,7 @@ Vagrant.configure("2") do |config|
     mkdir -p /usr/local/share/maps/style
     chown osmuser /usr/local/share/maps/style
     cd /usr/local/share/maps/style
-    wget -q https://github.com/mapbox/osm-bright/archive/master.zip
+    wget -q https://github.com/OpenGeoscience/osm-bright/archive/master.zip
     wget -q http://data.openstreetmapdata.com/simplified-land-polygons-complete-3857.zip
     wget -q http://data.openstreetmapdata.com/land-polygons-split-3857.zip
     mkdir ne_10m_populated_places_simple && cd ne_10m_populated_places_simple
