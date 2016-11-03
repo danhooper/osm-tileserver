@@ -92,6 +92,7 @@ Vagrant.configure("2") do |config|
     # Configure renderd & mod_tile
     cp /data_share/config/renderd/renderd.conf /usr/local/etc/
     echo "LoadModule tile_module /usr/lib/apache2/modules/mod_tile.so" >> /etc/apache2/conf-available/mod_tile.conf
+    echo "LoadModule headers_module /usr/lib/apache2/modules/mod_headers.so" >> /etc/apache2/conf-available/mod_tile.conf
     cp /data_share/config/apache2/000-default.conf /etc/apache2/sites-available/
     a2enconf mod_tile
     cp /data_share/config/renderd/renderd.init /etc/init.d/renderd
