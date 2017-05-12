@@ -5,9 +5,9 @@ Vagrant.configure("2") do |config|
   config.vm.box = "ubuntu/trusty64"
   config.vm.hostname = "osmtileserver"
 
-  config.vm.network "forwarded_port", guest: 80, host: 8080
+  config.vm.network "forwarded_port", guest: 80, host: 8082
   # config.vm.network "private_network", ip: "192.168.33.10"
-  config.vm.post_up_message = "osmtileserver is running at http://localhost:8080"
+  config.vm.post_up_message = "osmtileserver is running at http://localhost:8082"
 
   config.vm.synced_folder "../data", "/data_share"
 
@@ -105,22 +105,25 @@ Vagrant.configure("2") do |config|
     cp /data_share/config/postgres/postgresql.conf /etc/postgresql/9.3/main/
     cp /data_share/config/sysctl.conf /etc/
 
-    # Import latest OSM-data for California
-    mkdir /usr/local/share/maps/California
-    chown osmuser /usr/local/share/maps/California
-    cd /usr/local/share/maps/California
-    wget -q http://download.geofabrik.de/north-america/us/california-latest.osm.pbf
-    sudo -u osmuser osm2pgsql --slim -d gis -C 2048 --number-processes 3 /usr/local/share/maps/California/california-latest.osm.pbf
+    # Import latest OSM-data for Egypt
+    mkdir /usr/local/share/maps/Egypt
+    chown osmuser /usr/local/share/maps/Egypt
+    cd /usr/local/share/maps/Egypt
+    wget -q http://download.geofabrik.de/africa/egypt-latest.osm.pbf
+    cp /data_share/english.style /usr/local/share/osm2pgsql/
+    sudo -u osmuser osm2pgsql --slim -d gis -C 2048 --number-processes 3 /usr/local/share/maps/Egypt/egypt-latest.osm.pbf  --style /usr/local/share/osm2pgsql/english.style
+    sudo -u osmuser psql -d gis -f /data_share/english_names.sql
+
 
     # Setup auto-updating for OSM-data
-    /root/src/osm2pgsql/install-postgis-osm-user.sh gis osmuser
-    cp /root/src/mod_tile/openstreetmap-tiles-update-expire /usr/bin/
-    cp /root/src/mod_tile/osmosis-db_replag /usr/bin/
-    mkdir /var/log/tiles && chown osmuser /var/log/tiles
-    DATE=`date +%Y-%m-%d` &&  sudo -u osmuser openstreetmap-tiles-update-expire $DATE
-    cp /data_share/config/osmosis/configuration.txt /var/lib/mod_tile/.osmosis/
-    sudo -u osmuser openstreetmap-tiles-update-expire
-    cp /data_share/config/osmosis/rc.local /etc/rc.local
+    #/root/src/osm2pgsql/install-postgis-osm-user.sh gis osmuser
+    #cp /root/src/mod_tile/openstreetmap-tiles-update-expire /usr/bin/
+    #cp /root/src/mod_tile/osmosis-db_replag /usr/bin/
+    #mkdir /var/log/tiles && chown osmuser /var/log/tiles
+    #DATE=`date +%Y-%m-%d` &&  sudo -u osmuser openstreetmap-tiles-update-expire $DATE
+    #cp /data_share/config/osmosis/configuration.txt /var/lib/mod_tile/.osmosis/
+    #sudo -u osmuser openstreetmap-tiles-update-expire
+    #cp /data_share/config/osmosis/rc.local /etc/rc.local
 
     # Starting services
     mkdir /var/run/renderd

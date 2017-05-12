@@ -14,13 +14,13 @@
   </body>
   <script src="//unpkg.com/leaflet@1.0.0-rc.3/dist/leaflet.js"></script>
   <script>
-    // set up the map
-  	var map = new L.Map('mapContainer', { preferCanvas: true });
+      // set up the map
+      var map = new L.Map('mapContainer', { preferCanvas: true });
 
-  	var tileUrl = "/osm_tiles/{z}/{x}/{y}.png";
-  	var osm = new L.TileLayer(tileUrl, {minZoom: 8, maxZoom: 19});
+      var tileUrl = "/osm_tiles/{z}/{x}/{y}.png";
+      var osm = new L.TileLayer(tileUrl, {minZoom: 1, maxZoom: 19});
 
-      map.setView(new L.LatLng(34.052235, -118.243683), 15);
-  	map.addLayer(osm);
+      map.setView(new L.LatLng(34.052235, -118.243683), 1);
+      map.addLayer(osm);
   </script>
 </html>
