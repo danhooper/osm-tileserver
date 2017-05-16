@@ -1,3 +1,20 @@
+while [[ $# > 0 ]]
+do
+key="$1"
+shift
+
+SSL=false
+
+case $key in
+    -s|--ssl)
+    SSL=true
+    ;;
+    *)
+            # unknown option
+    ;;
+esac
+done
+
 apt-get update
 
 # Base packages
@@ -73,7 +90,12 @@ cp /data_share/config/renderd/renderd.conf /usr/local/etc/
 echo "LoadModule tile_module /usr/lib/apache2/modules/mod_tile.so" >> /etc/apache2/conf-available/mod_tile.conf
 echo "LoadModule headers_module /usr/lib/apache2/modules/mod_headers.so" >> /etc/apache2/conf-available/mod_tile.conf
 cp /data_share/config/apache2/000-default.conf /etc/apache2/sites-available/
+if [ "$SSL" -eq "true" ]; then
+    cp /data_share/config/apache2/100-default-ssl.conf /etc/apache2/sites-available/
+    a2enmod ssl
+fi
 a2enconf mod_tile
+ln -s /etc/apache2/sites-available/100-default-ssl.conf /etc/apache2/sites-enabled/
 cp /data_share/config/renderd/renderd.init /etc/init.d/renderd
 chmod u+x /etc/init.d/renderd
 ln -s /etc/init.d/renderd /etc/rc2.d/S20renderd
@@ -108,7 +130,9 @@ sudo -u osmuser psql -d gis -f /data_share/english_names.sql
 mkdir /var/run/renderd
 chown osmuser /var/run/renderd
 /etc/init.d/renderd start
-service apache2 restart
+service apache2 restart &
+
+echo "Restarted apache"
 
 # Setup default map interface (TODO: replace with osmuser)
 rm /var/www/html/index.html
