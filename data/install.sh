@@ -67,7 +67,7 @@ cp /data_share/config/renderd/renderd.conf /usr/local/etc/
 echo "LoadModule tile_module /usr/lib/apache2/modules/mod_tile.so" >> /etc/apache2/conf-available/mod_tile.conf
 echo "LoadModule headers_module /usr/lib/apache2/modules/mod_headers.so" >> /etc/apache2/conf-available/mod_tile.conf
 cp /data_share/config/apache2/000-default.conf /etc/apache2/sites-available/
-if [ "$SSL" -eq "true" ]; then
+if [[ "$SSL" -eq "true" ]]; then
     cp /data_share/config/apache2/100-default-ssl.conf /etc/apache2/sites-available/
     ln -s /etc/apache2/sites-available/100-default-ssl.conf /etc/apache2/sites-enabled/
     a2enmod ssl
@@ -75,7 +75,7 @@ fi
 a2enconf mod_tile
 cp /data_share/config/renderd/renderd.init /etc/init.d/renderd
 chmod u+x /etc/init.d/renderd
-ln -s /etc/init.d/renderd /etc/rc2.d/S20renderd
+sudo cp /root/src/mod_tile/debian/renderd.service /lib/systemd/system/
 mkdir /var/lib/mod_tile
 chown osmuser /var/lib/mod_tile
 
