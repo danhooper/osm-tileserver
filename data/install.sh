@@ -104,6 +104,7 @@ chown osmuser /var/lib/mod_tile
 
 # System tuning
 cp /data_share/config/postgres/postgresql.conf /etc/postgresql/9.3/main/
+service postgresql restart
 cp /data_share/config/sysctl.conf /etc/
 
 # Import latest OSM-data for Egypt
