@@ -15,16 +15,16 @@ case $key in
 esac
 done
 
-apt-get update
+sudo apt-get update
 
 # Base packages
-apt install -y libboost-all-dev git-core tar unzip wget bzip2 build-essential autoconf libtool libxml2-dev libgeos-dev libgeos++-dev libpq-dev libbz2-dev libproj-dev munin-node munin libprotobuf-c0-dev protobuf-c-compiler libfreetype6-dev libpng12-dev libtiff5-dev libicu-dev libgdal-dev libcairo-dev libcairomm-1.0-dev apache2 apache2-dev libagg-dev liblua5.2-dev ttf-unifont lua5.1 liblua5.1-dev libgeotiff-epsg node-carto cmake
+sudo apt install -y libboost-all-dev git-core tar unzip wget bzip2 build-essential autoconf libtool libxml2-dev libgeos-dev libgeos++-dev libpq-dev libbz2-dev libproj-dev munin-node munin libprotobuf-c0-dev protobuf-c-compiler libfreetype6-dev libpng12-dev libtiff5-dev libicu-dev libgdal-dev libcairo-dev libcairomm-1.0-dev apache2 apache2-dev libagg-dev liblua5.2-dev ttf-unifont lua5.1 liblua5.1-dev libgeotiff-epsg node-carto cmake
 
 # Setting up PostgreSQL
 sudo apt install -y postgresql postgresql-contrib postgis postgresql-9.5-postgis-2.2
 sudo -u postgres createuser -S osmuser
 sudo -u postgres createdb -E UTF8 -O osmuser gis
-useradd -m osmuser
+sudo useradd -m osmuser
 sudo -u postgres psql --command="CREATE EXTENSION postgis;ALTER TABLE geometry_columns OWNER TO osmuser;ALTER TABLE spatial_ref_sys OWNER TO osmuser;" --dbname=gis
 
 # Installing osm2pgsql
@@ -34,7 +34,7 @@ cd ~/src/osm2pgsql
 mkdir build && cd build
 cmake ..
 make
-make install
+sudo make install
 
 # Installing Mapnik
 sudo apt install -y autoconf apache2-dev libtool libxml2-dev libbz2-dev libgeos-dev libgeos++-dev libproj-dev gdal-bin libgdal1-dev libmapnik-dev mapnik-utils python-mapnik
@@ -58,6 +58,10 @@ git checkout `git rev-list -n 1 --before="2016-12-04 00:00" master`
 cd ~/src/openstreetmap-carto
 carto project.mml > mapnik.xml
 
+cd ~/src/openstreetmap-carto/
+scripts/get-shapefiles.py
+
+
 sudo apt-get install -y fonts-noto-cjk fonts-noto-hinted fonts-noto-unhinted ttf-unifont
 
 
@@ -75,7 +79,7 @@ fi
 a2enconf mod_tile
 cp /data_share/config/renderd/renderd.init /etc/init.d/renderd
 chmod u+x /etc/init.d/renderd
-sudo cp /root/src/mod_tile/debian/renderd.service /lib/systemd/system/
+sudo cp ~/src/mod_tile/debian/renderd.service /lib/systemd/system/
 mkdir /var/lib/mod_tile
 chown osmuser /var/lib/mod_tile
 
@@ -84,26 +88,23 @@ chown osmuser /var/lib/mod_tile
 # cp /data_share/config/sysctl.conf /etc/
 
 sudo mkdir -p /usr/local/share/maps/style
-sudo cp /root/src/openstreetmap-carto/mapnik.xml /usr/local/share/maps/style/
-sudo cp -R /root/src/openstreetmap-carto/data /usr/local/share/maps/style/
-sudo cp -R /root/src/openstreetmap-carto/symbols /usr/local/share/maps/style/
+sudo cp ~/src/openstreetmap-carto/mapnik.xml /usr/local/share/maps/style/
+sudo cp -R ~/src/openstreetmap-carto/data /usr/local/share/maps/style/
+sudo cp -R ~/src/openstreetmap-carto/symbols /usr/local/share/maps/style/
 
 # Import latest OSM-data for Egypt
-mkdir -p /usr/local/share/maps/Egypt
+sudo mkdir -p /usr/local/share/maps/Egypt
 chown osmuser /usr/local/share/maps/Egypt
 cd /usr/local/share/maps/Egypt
-wget -q http://download.geofabrik.de/africa/egypt-latest.osm.pbf
-cp /data_share/english.style /usr/local/share/osm2pgsql/
-cp ~/src/openstreetmap-carto/openstreetmap-carto.style /usr/local/share/maps/style/
+sudo wget -q http://download.geofabrik.de/africa/egypt-latest.osm.pbf
+sudo cp /data_share/english.style /usr/local/share/osm2pgsql/
+sudo cp ~/src/openstreetmap-carto/openstreetmap-carto.style /usr/local/share/maps/style/
 sudo -u osmuser osm2pgsql --slim -d gis -C 2048 --number-processes 3 /usr/local/share/maps/Egypt/egypt-latest.osm.pbf  --style /usr/local/share/maps/style/openstreetmap-carto.style
 sudo -u osmuser psql -d gis -f /data_share/english_names.sql
 
-cd ~/src/openstreetmap-carto/
-scripts/get-shapefiles.py
-
 
 # Setup auto-updating for OSM-data
-/root/src/osm2pgsql/install-postgis-osm-user.sh gis osmuser
+~/src/osm2pgsql/install-postgis-osm-user.sh gis osmuser
 #cp /root/src/mod_tile/openstreetmap-tiles-update-expire /usr/bin/
 #cp /root/src/mod_tile/osmosis-db_replag /usr/bin/
 #mkdir /var/log/tiles && chown osmuser /var/log/tiles
