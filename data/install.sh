@@ -18,9 +18,10 @@ done
 apt-get update
 
 # Base packages
-apt-get install -y make cmake g++ libboost-all-dev libexpat1-dev zlib1g-dev subversion git-core tar unzip wget bzip2 build-essential autoconf libtool libxml2-dev libgeos-dev libgeos++-dev libpq-dev libbz2-dev libproj-dev munin-node munin libprotobuf-c0-dev protobuf-c-compiler libfreetype6-dev libpng12-dev libtiff4-dev libicu-dev libgdal1-dev libcairo-dev libcairomm-1.0-dev apache2 apache2-dev libagg-dev liblua5.2-dev ttf-unifont lua5.2 liblua5.2-dev libgeotiff-epsg node-carto postgresql postgresql-contrib postgis postgresql-9.3-postgis-2.1 osmosis
+apt install -y libboost-all-dev git-core tar unzip wget bzip2 build-essential autoconf libtool libxml2-dev libgeos-dev libgeos++-dev libpq-dev libbz2-dev libproj-dev munin-node munin libprotobuf-c0-dev protobuf-c-compiler libfreetype6-dev libpng12-dev libtiff5-dev libicu-dev libgdal-dev libcairo-dev libcairomm-1.0-dev apache2 apache2-dev libagg-dev liblua5.2-dev ttf-unifont lua5.1 liblua5.1-dev libgeotiff-epsg node-carto cmake
 
 # Setting up PostgreSQL
+sudo apt install -y postgresql postgresql-contrib postgis postgresql-9.5-postgis-2.2
 sudo -u postgres createuser -S osmuser
 sudo -u postgres createdb -E UTF8 -O osmuser gis
 useradd -m osmuser
@@ -36,54 +37,30 @@ make
 make install
 
 # Installing Mapnik
-git clone git://github.com/mapnik/mapnik ~/src/mapnik
-cd ~/src/mapnik
-git branch 2.2 origin/2.2.x
-git checkout 2.2
-python scons/scons.py configure INPUT_PLUGINS=all OPTIMIZATION=3  DEBUG=0 SYSTEM_FONTS=/usr/share/fonts/truetype/
-make -jN
-make install
-ldconfig
+sudo apt install -y autoconf apache2-dev libtool libxml2-dev libbz2-dev libgeos-dev libgeos++-dev libproj-dev gdal-bin libgdal1-dev libmapnik-dev mapnik-utils python-mapnik
 
 # Installing mod_tile and renderd
-git clone git://github.com/openstreetmap/mod_tile.git ~/src/mod_tile
-cd ~/src/mod_tile
+cd ~/src
+git clone git://github.com/SomeoneElseOSM/mod_tile.git
+cd mod_tile
 ./autogen.sh
 ./configure
-make -jN
-make install
-make install-mod_tile
-ldconfig
+make
+sudo make install
+sudo make install-mod_tile
+sudo ldconfig
 
-# Installing osm-bright stylesheet
-mkdir -p /usr/local/share/maps/style
-chown osmuser /usr/local/share/maps/style
-cd /usr/local/share/maps/style
-wget -q https://github.com/OpenGeoscience/osm-bright/archive/master.zip
-wget -q http://data.openstreetmapdata.com/simplified-land-polygons-complete-3857.zip
-wget -q http://data.openstreetmapdata.com/land-polygons-split-3857.zip
-mkdir ne_10m_populated_places_simple && cd ne_10m_populated_places_simple
-wget -q http://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/cultural/ne_10m_populated_places_simple.zip
-unzip ne_10m_populated_places_simple.zip && rm ne_10m_populated_places_simple.zip
-cd ..
-unzip '*.zip'
-mkdir osm-bright-master/shp
-mv land-polygons-split-3857 osm-bright-master/shp/
-mv simplified-land-polygons-complete-3857 osm-bright-master/shp/
-mv ne_10m_populated_places_simple osm-bright-master/shp/
-cd osm-bright-master/shp/land-polygons-split-3857
-cd osm-bright-master/shp/land-polygons-split-3857
-shapeindex land_polygons.shp
-cd ../simplified-land-polygons-complete-3857/
-shapeindex simplified_land_polygons.shp
-cd ../..
-cp /data_share/config/osm-bright/osm-bright.osm2pgsql.mml osm-bright/
-cp /data_share/config/osm-bright/labels.mss osm-bright/
-cp /data_share/config/osm-bright/configure.py .
-rm configure.py.sample
-./make.py
-cd ../OSMBright/
-carto project.mml > OSMBright.xml
+
+cd ~/src
+git clone git://github.com/gravitystorm/openstreetmap-carto.git
+cd openstreetmap-carto
+git checkout `git rev-list -n 1 --before="2016-12-04 00:00" master`
+cd ~/src/openstreetmap-carto
+carto project.mml > mapnik.xml
+
+sudo apt-get install -y fonts-noto-cjk fonts-noto-hinted fonts-noto-unhinted ttf-unifont
+
+
 
 # Configure renderd & mod_tile
 cp /data_share/config/renderd/renderd.conf /usr/local/etc/
@@ -92,10 +69,10 @@ echo "LoadModule headers_module /usr/lib/apache2/modules/mod_headers.so" >> /etc
 cp /data_share/config/apache2/000-default.conf /etc/apache2/sites-available/
 if [ "$SSL" -eq "true" ]; then
     cp /data_share/config/apache2/100-default-ssl.conf /etc/apache2/sites-available/
+    ln -s /etc/apache2/sites-available/100-default-ssl.conf /etc/apache2/sites-enabled/
     a2enmod ssl
 fi
 a2enconf mod_tile
-ln -s /etc/apache2/sites-available/100-default-ssl.conf /etc/apache2/sites-enabled/
 cp /data_share/config/renderd/renderd.init /etc/init.d/renderd
 chmod u+x /etc/init.d/renderd
 ln -s /etc/init.d/renderd /etc/rc2.d/S20renderd
@@ -103,21 +80,30 @@ mkdir /var/lib/mod_tile
 chown osmuser /var/lib/mod_tile
 
 # System tuning
-cp /data_share/config/postgres/postgresql.conf /etc/postgresql/9.3/main/
-cp /data_share/config/sysctl.conf /etc/
+# cp /data_share/config/postgres/postgresql.conf /etc/postgresql/9.3/main/
+# cp /data_share/config/sysctl.conf /etc/
+
+sudo mkdir -p /usr/local/share/maps/style
+sudo cp /root/src/openstreetmap-carto/mapnik.xml /usr/local/share/maps/style/
+sudo cp -R /root/src/openstreetmap-carto/data /usr/local/share/maps/style/
+sudo cp -R /root/src/openstreetmap-carto/symbols /usr/local/share/maps/style/
 
 # Import latest OSM-data for Egypt
-mkdir /usr/local/share/maps/Egypt
+mkdir -p /usr/local/share/maps/Egypt
 chown osmuser /usr/local/share/maps/Egypt
 cd /usr/local/share/maps/Egypt
 wget -q http://download.geofabrik.de/africa/egypt-latest.osm.pbf
 cp /data_share/english.style /usr/local/share/osm2pgsql/
-sudo -u osmuser osm2pgsql --slim -d gis -C 2048 --number-processes 3 /usr/local/share/maps/Egypt/egypt-latest.osm.pbf  --style /usr/local/share/osm2pgsql/english.style
+cp ~/src/openstreetmap-carto/openstreetmap-carto.style /usr/local/share/maps/style/
+sudo -u osmuser osm2pgsql --slim -d gis -C 2048 --number-processes 3 /usr/local/share/maps/Egypt/egypt-latest.osm.pbf  --style /usr/local/share/maps/style/openstreetmap-carto.style
 sudo -u osmuser psql -d gis -f /data_share/english_names.sql
+
+cd ~/src/openstreetmap-carto/
+scripts/get-shapefiles.py
 
 
 # Setup auto-updating for OSM-data
-#/root/src/osm2pgsql/install-postgis-osm-user.sh gis osmuser
+/root/src/osm2pgsql/install-postgis-osm-user.sh gis osmuser
 #cp /root/src/mod_tile/openstreetmap-tiles-update-expire /usr/bin/
 #cp /root/src/mod_tile/osmosis-db_replag /usr/bin/
 #mkdir /var/log/tiles && chown osmuser /var/log/tiles
@@ -125,6 +111,10 @@ sudo -u osmuser psql -d gis -f /data_share/english_names.sql
 #cp /data_share/config/osmosis/configuration.txt /var/lib/mod_tile/.osmosis/
 #sudo -u osmuser openstreetmap-tiles-update-expire
 #cp /data_share/config/osmosis/rc.local /etc/rc.local
+
+# # Setup default map interface (TODO: replace with osmuser)
+rm /var/www/html/index.html
+cp /data_share/web/index.html /var/www/html/
 
 # Starting services
 mkdir /var/run/renderd
@@ -134,6 +124,3 @@ service apache2 restart &
 
 echo "Restarted apache"
 
-# Setup default map interface (TODO: replace with osmuser)
-rm /var/www/html/index.html
-cp /data_share/web/index.html /var/www/html/
