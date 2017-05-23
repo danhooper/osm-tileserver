@@ -119,7 +119,7 @@ cp /data_share/web/index.html /var/www/html/
 # Starting services
 mkdir /var/run/renderd
 chown osmuser /var/run/renderd
-/etc/init.d/renderd start
+service renderd restart &
 service apache2 restart &
 
 echo "Restarted apache"
