@@ -97,9 +97,8 @@ sudo mkdir -p /usr/local/share/maps/Egypt
 chown osmuser /usr/local/share/maps/Egypt
 cd /usr/local/share/maps/Egypt
 sudo wget -q http://download.geofabrik.de/africa/egypt-latest.osm.pbf
-sudo cp /data_share/english.style /usr/local/share/osm2pgsql/
-sudo cp ~/src/openstreetmap-carto/openstreetmap-carto.style /usr/local/share/maps/style/
-sudo -u osmuser osm2pgsql --slim -d gis -C 2048 --number-processes 3 /usr/local/share/maps/Egypt/egypt-latest.osm.pbf  --style /usr/local/share/maps/style/openstreetmap-carto.style
+sudo cp /data_share/english.style /usr/local/share/maps/style/
+sudo -u osmuser osm2pgsql --slim -d gis -C 2048 --number-processes 3 /usr/local/share/maps/Egypt/egypt-latest.osm.pbf  --style /usr/local/share/maps/style/english.style
 sudo -u osmuser psql -d gis -f /data_share/english_names.sql
 
 
