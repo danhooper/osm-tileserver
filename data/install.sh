@@ -1,3 +1,5 @@
+#!/bin/bash
+
 while [[ $# > 0 ]]
 do
 key="$1"
