@@ -30,7 +30,7 @@ sudo useradd -m osmuser
 sudo -u postgres psql --command="CREATE EXTENSION postgis;ALTER TABLE geometry_columns OWNER TO osmuser;ALTER TABLE spatial_ref_sys OWNER TO osmuser;" --dbname=gis
 
 # Installing osm2pgsql
-mkdir ~/src
+mkdir -p ~/src
 git clone git://github.com/openstreetmap/osm2pgsql.git ~/src/osm2pgsql
 cd ~/src/osm2pgsql
 mkdir build && cd build
@@ -82,7 +82,7 @@ a2enconf mod_tile
 cp /data_share/config/renderd/renderd.init /etc/init.d/renderd
 chmod u+x /etc/init.d/renderd
 sudo cp ~/src/mod_tile/debian/renderd.service /lib/systemd/system/
-mkdir /var/lib/mod_tile
+mkdir -p /var/lib/mod_tile
 chown osmuser /var/lib/mod_tile
 
 # System tuning
@@ -119,7 +119,7 @@ rm /var/www/html/index.html
 cp /data_share/web/index.html /var/www/html/
 
 # Starting services
-mkdir /var/run/renderd
+mkdir -p /var/run/renderd
 chown osmuser /var/run/renderd
 service renderd restart &
 service apache2 restart &
